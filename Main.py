@@ -6,55 +6,105 @@ import base64
 import requests
 import threading
 import random
-from colorama import Fore
+from colorama import Fore, Style
+colorama.init()
 import datetime as dt
 import time
 import string
 import discum
-def info(message):
-    print(f'{Fore.LIGHTWHITE_EX}[{Fore.LIGHTBLACK_EX}{dt.datetime.fromtimestamp(time.time()).strftime(f"%H{Fore.LIGHTWHITE_EX}:{Fore.LIGHTBLACK_EX}%M{Fore.LIGHTWHITE_EX}:{Fore.LIGHTBLACK_EX}%S")}{Fore.RESET}] [{Fore.CYAN}INFO{Fore.RESET}] {Fore.LIGHTMAGENTA_EX}{message}{Fore.RESET}')
+import threading
+import websocket
+import datetime
+from datetime import datetime
+import json
+import time
+from websocket import WebSocket
+from concurrent.futures import ThreadPoolExecutor
+import easygui, os
+import art
+from art import tprint
+import re
+
+debugmode = False
 def error(message):
-    print(f'{Fore.LIGHTWHITE_EX}[{Fore.LIGHTBLACK_EX}{dt.datetime.fromtimestamp(time.time()).strftime(f"%H{Fore.LIGHTWHITE_EX}:{Fore.LIGHTBLACK_EX}%M{Fore.LIGHTWHITE_EX}:{Fore.LIGHTBLACK_EX}%S")}{Fore.RESET}] [{Fore.RED}ERROR{Fore.RESET}] {Fore.RESET}{message}{Fore.RESET}')
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.RED}[ERROR]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+def warning(message):
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.YELLOW}[WARN]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+def debug(message):
+    if debugmode:
+        print(
+            f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.LIGHTYELLOW_EX}[DEBUG]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+def solver(message):
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.MAGENTA}[SOLVER]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+def success(message):
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.GREEN}[SUCCESS]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+def tinput(message):
+    r = input(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.LIGHTCYAN_EX}[INPUT]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}{Fore.LIGHTBLACK_EX} >>> {Style.RESET_ALL}")
+    return r
+
+
+def info(message):
+    print(
+        f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.BLUE}[INFO]{Style.RESET_ALL} [{threading.current_thread().name.replace(' (<lambda>)', '').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
 
 def cls():
  os.system('cls' if os.name=='nt' else 'clear')
 
-def tool():
-  os.system('cls' if os.name=='nt' else 'clear')
-def newl():
-   print('\n')
 def clearConsole(): return os.system(
     'cls' if os.name in ('nt', 'dos') else 'clear')
 
+def uwuspeak(text):
+    def add_emoticon(match):
+        emoticons = ['OwO', 'UwU', '^w^', '>w<', '>wO', 'ÓwÒ', 'ÒwÓ', 'òωó', 'ÓωÒ', '(・`ω´・)', '(U・x・U)']
+        return f'{match.group(0)} {random.choice(emoticons)}'
+
+    text = re.sub(r'[Ll]', 'W', text)
+    text = re.sub(r'[Rr]', 'W', text)
+    text = re.sub(r'[Nn]', 'Ny', text)
+    text = re.sub(r'\bth', 'd', text)
+    text = re.sub(r'\bTh', 'D', text)
+    text = re.sub(r'(?<![.!])\B[!?.]\B', add_emoticon, text)
+    text = re.sub(r'\.{3}', '... UwU', text)
+
+    # Adding emoticons at the beginning and end of the text
+    text = f'{random.choice(emoticons)} {text} {random.choice(emoticons)}'
+
+    return text
 
 def main():
-    print(""" 
-███▄ ▄███▓ ██▓ ███▄    █  ██▓   ▄▄▄█████▓ ▒█████   ▒█████   ██▓      ██████ 
-▓██▒▀█▀ ██▒▓██▒ ██ ▀█   █ ▓██▒   ▓  ██▒ ▓▒▒██▒  ██▒▒██▒  ██▒▓██▒    ▒██    ▒ 
-▓██    ▓██░▒██▒▓██  ▀█ ██▒▒██▒   ▒ ▓██░ ▒░▒██░  ██▒▒██░  ██▒▒██░    ░ ▓██▄   
-▒██    ▒██ ░██░▓██▒  ▐▌██▒░██░   ░ ▓██▓ ░ ▒██   ██░▒██   ██░▒██░      ▒   ██▒
-▒██▒   ░██▒░██░▒██░   ▓██░░██░     ▒██▒ ░ ░ ████▓▒░░ ████▓▒░░██████▒▒██████▒▒
-░ ▒░   ░  ░░▓  ░ ▒░   ▒ ▒ ░▓       ▒ ░░   ░ ▒░▒░▒░ ░ ▒░▒░▒░ ░ ▒░▓  ░▒ ▒▓▒ ▒ ░
-░  ░      ░ ▒ ░░ ░░   ░ ▒░ ▒ ░       ░      ░ ▒ ▒░   ░ ▒ ▒░ ░ ░ ▒  ░░ ░▒  ░ ░
-░      ░    ▒ ░   ░   ░ ░  ▒ ░     ░      ░ ░ ░ ▒  ░ ░ ░ ▒    ░ ░   ░  ░  ░  
-       ░    ░           ░  ░                  ░ ░      ░ ░      ░  ░      ░  
-                                                                             """)
-    newl()
-    newl()
-    print("""[1]Server Joiner             [2]Chanel Spammer           [3]ID Scraper""")
-    newl()
+    tprint("MiniTool","xlarge")
+    print()
+    print("""[1] Server Joiner             [2] Channel Spammer           [3] ID Scraper""")
+    print("""[4] Message Reactor             [2] Channel Spammer           [3] ID Scraper""")
+    print()
     global mode
-    mode = input('[?]Mode:')
+    mode = tinput('Mode')
 if __name__ == "__main__":
     main()
+
 
 if mode == '1':
     class Joiner:
         def __init__(self):
             os.system("cls")
             self.session = tls_client.Session(client_identifier="chrome_108")
-            delay = input("[?]Delay:")
-            invite_code = input("discord.gg/")
+            invite_code = tinput("Invite code").replace("https://discord.gg/", '')
+            delay = tinput("Delay")
             with open("tokens.txt") as f:
                 tokens = f.read().split('\n')
             ts = [threading.Thread(target=self.join,args=[token,invite_code,self.proxy()]) for token in tokens]
@@ -113,29 +163,26 @@ if mode == '1':
 
     Joiner()
 if mode == '2':
-    ID = input('[?] Chanel ID:')
-    message = input('[?] Message:')
-    massping = input('[?] Mass Ping(y/n):')
+    ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
+    message = tinput('Message')
+    massping = tinput('Mass Ping (y/n)')
+    if massping == 'y':
+        pingcount = tinput("How many pings per message?")
     def main(token):
 
         mem = open('members.txt','r').read().splitlines()
         while True:
-            mem1 = random.choice(mem)
-            mem2 = random.choice(mem)
-            mem3 = random.choice(mem)
-            mem4 = random.choice(mem)
-            mem5 = random.choice(mem)
-            mem6 = random.choice(mem)
-            mem7 = random.choice(mem)
-            mem8 = random.choice(mem)
-            mem9 = random.choice(mem)
-            mem10 = random.choice(mem)   
+            channell = random.choice(ID)
+            print(channell)
+            mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
+            mems = ' '.join(mem1)
+            
             time.sleep(0.5)
-            url = f'https://discord.com/api/v9/channels/{ID}/messages'
+            url = f'https://discord.com/api/v9/channels/{channell}/messages'
             header = {"authorization": token}
             mess = " | " + "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
-                data = {"content": f"<@{mem1}> {message}  {mess}"}
+                data = {"content": f"{mems} {message}  {mess}"}
             else:
                 data = {"content": f"{message}  {mess}"}
             r = requests.post(url, headers=header, data=data)
@@ -181,3 +228,108 @@ if mode == '3':
     with open('members.txt','w') as ids:
         for element in memberids:
             ids.write(element + '\n')
+
+
+if mode == '16':
+    tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
+    channel = int(input("Channel ID: "))
+    server = int(input("Server ID: "))
+    deaf = input("Defean: (y/n) ")
+    if deaf == "y":
+        deaf = True
+    if deaf == "n":
+        deaf = False
+    mute = input("Mute: (y/n) ")
+    if mute == "y":
+        mute = True
+    if mute == "n":
+        mute = False
+    stream = input("Stream: (y/n) ")
+    if stream == "y":
+        stream = True
+    if stream == "n":
+        stream = False
+    video = input("Video: (y/n) ")
+    if video == "y":
+        video = True
+    if video == "n":
+        video = False
+
+    executor = ThreadPoolExecutor(max_workers=int(1000))
+    def run(token):
+        while True:
+            ws = WebSocket()
+            ws.connect("wss://gateway.discord.gg/?v=8&encoding=json")
+            hello = json.loads(ws.recv())
+            heartbeat_interval = hello['d']['heartbeat_interval']
+            ws.send(json.dumps({"op": 2,"d": {"token": token,"properties": {"$os": "windows","$browser": "Discord","$device": "desktop"}}}))
+            ws.send(json.dumps({"op": 4,"d": {"guild_id": server,"channel_id": channel,"self_mute": mute,"self_deaf": deaf, "self_stream?": stream, "self_video": video}}))
+            ws.send(json.dumps({"op": 18,"d": {"type": "guild","guild_id": server,"channel_id": channel,"preferred_region": "singapore"}}))
+            ws.send(json.dumps({"op": 1,"d": None}))
+            ws.close()
+            time.sleep(0.1)
+            
+    os.system(f"title Total Tokens: {len(tokenlist)}")
+    i = 0
+    for token in tokenlist:
+        executor.submit(run, token)
+    i+=1
+    print("[+] Joined voice channel")
+    time.sleep(0.01)
+    yay = input("Enter to exit.")
+
+import requests
+import base64
+import urllib.parse
+
+if mode == 4:
+    Channel = tinput('Channel ID:')
+    Message = tinput('Message ID:')
+    emoji = urllib.parse.quote(tinput('Emoji'))
+
+
+    with open('tokens.txt','r') as r:
+        tokens = r.readlines
+    for token in tokens:
+        def cookies():
+                    c = requests.get("https://discord.com")
+                    return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
+        def xheaders():
+                    xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
+                    xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
+                    return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
+        xconst, xprops = xheaders()
+        headers = {
+            "accept":               "*/*",
+            "accept-encoding":      "gzip, deflate, br",
+            "accept-language":      "en-US,en-NL;q=0.9,en-GB;q=0.8",
+            "authorization":        token,
+            "content-type":         "application/json",
+            "cookie":               cookies(None),
+            "origin":               "https://discord.com",
+            "referer":              "https://discord.com/channels/@me/",
+            "sec-fetch-dest":       "empty",
+            "sec-fetch-mode":       "cors",
+            "sec-fetch-site":       "same-origin",
+            "user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+            "x-context-properties": xconst.decode(),
+            "x-debug-options":      "bugReporterEnabled",
+            "x-discord-locale":     "en-US",
+            "x-super-properties":   xprops.decode(),
+            }
+
+        params = {
+            'location': 'Message',
+            'type': '0',
+        }
+
+        response = requests.put(
+            f'https://discord.com/api/v9/channels/{Channel}/messages/{Message}/reactions/{emoji}/%40me',
+            params=params,
+            headers=headers,
+        )
+        if response.status_code == 204:
+            success(f'Token:{token[:10]}...   Reacted')
+        else:
+            error(f'Token:{token[:10]}...   Could not React')
+
