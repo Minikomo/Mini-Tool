@@ -24,7 +24,8 @@ import easygui, os
 import art
 from art import tprint
 import re
-
+import base64
+import urllib.parse
 debugmode = False
 def error(message):
     print(
@@ -68,10 +69,41 @@ def cls():
 def clearConsole(): return os.system(
     'cls' if os.name in ('nt', 'dos') else 'clear')
 
+def hackerspeak(text):
+    leet_dict = {
+        'a': ['4', '@'],
+        'A': ['4', '@'],
+        'e': ['3', '€'],
+        'E': ['3', '€'],
+        'i': ['1', '!'],
+        'I': ['1', '!'],
+        'o': ['0', '¤'],
+        'O': ['0', '¤'],
+        't': ['7', '+'],
+        'T': ['7', '+'],
+        's': ['5', '$'],
+        'S': ['5', '$'],
+        'l': ['1', '|'],
+        'L': ['1', '|'],
+        'b': ['8', 'ß'],
+        'B': ['8', 'ß'],
+        'g': ['9', '6'],
+        'G': ['9', '6'],
+        'z': ['2', '7'],
+        'Z': ['2', '7']
+    }
+
+    leet_text = ''.join([random.choice(leet_dict.get(char, [char])) for char in text])
+
+    return leet_text
+
 def uwuspeak(text):
     def add_emoticon(match):
         emoticons = ['OwO', 'UwU', '^w^', '>w<', '>wO', 'ÓwÒ', 'ÒwÓ', 'òωó', 'ÓωÒ', '(・`ω´・)', '(U・x・U)']
         return f'{match.group(0)} {random.choice(emoticons)}'
+    def get_emoticon():
+        emoticons = ['OwO', 'UwU', '^w^', '>w<', '>wO', 'ÓwÒ', 'ÒwÓ', 'òωó', 'ÓωÒ', '(・`ω´・)', '(U・x・U)']
+        return random.choice(emoticons)
 
     text = re.sub(r'[Ll]', 'W', text)
     text = re.sub(r'[Rr]', 'W', text)
@@ -81,8 +113,7 @@ def uwuspeak(text):
     text = re.sub(r'(?<![.!])\B[!?.]\B', add_emoticon, text)
     text = re.sub(r'\.{3}', '... UwU', text)
 
-    # Adding emoticons at the beginning and end of the text
-    text = f'{random.choice(emoticons)} {text} {random.choice(emoticons)}'
+    text = f'{get_emoticon()} {text} {get_emoticon()}'
 
     return text
 
@@ -168,6 +199,13 @@ if mode == '2':
     massping = tinput('Mass Ping (y/n)')
     if massping == 'y':
         pingcount = tinput("How many pings per message?")
+    x = tinput("Should we modify the text? (y/n)")
+    if x == 'y':
+        e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
+        if e == '1': message = uwuspeak(message)
+        elif e == '2': message = hackerspeak(message)
+        else: warning("Invalid input! Not modifying message.")
+    
     def main(token):
 
         mem = open('members.txt','r').read().splitlines()
@@ -180,9 +218,9 @@ if mode == '2':
             time.sleep(0.5)
             url = f'https://discord.com/api/v9/channels/{channell}/messages'
             header = {"authorization": token}
-            mess = " | " + "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
+            mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
-                data = {"content": f"{mems} {message}  {mess}"}
+                data = {"content": f"{message} | {mems} {mess}"}
             else:
                 data = {"content": f"{message}  {mess}"}
             r = requests.post(url, headers=header, data=data)
@@ -278,19 +316,17 @@ if mode == '16':
     time.sleep(0.01)
     yay = input("Enter to exit.")
 
-import requests
-import base64
-import urllib.parse
 
-if mode == 4:
+
+if mode == '4':
     Channel = tinput('Channel ID:')
     Message = tinput('Message ID:')
-    emoji = urllib.parse.quote(tinput('Emoji'))
-
-
-    with open('tokens.txt','r') as r:
-        tokens = r.readlines
-    for token in tokens:
+    emo = tinput('Emoji:')
+    emoji = urllib.parse.quote(emo)
+    with open("tokens.txt") as f:
+        tokens = f.readlines()
+    
+    def main(token):
         def cookies():
                     c = requests.get("https://discord.com")
                     return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
@@ -305,7 +341,7 @@ if mode == 4:
             "accept-language":      "en-US,en-NL;q=0.9,en-GB;q=0.8",
             "authorization":        token,
             "content-type":         "application/json",
-            "cookie":               cookies(None),
+            "cookie":               cookies(),
             "origin":               "https://discord.com",
             "referer":              "https://discord.com/channels/@me/",
             "sec-fetch-dest":       "empty",
@@ -333,3 +369,5 @@ if mode == 4:
         else:
             error(f'Token:{token[:10]}...   Could not React')
 
+    for token in tokens:
+        threading.Thread(target=main, args=(token.strip('\n'),)).start()
