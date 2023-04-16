@@ -135,7 +135,7 @@ if mode == '2':
             header = {"authorization": token}
             mess = " | " + "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
-                data = {"content": f"<@{mem1}> <@{mem2}> <@{mem3}> <@{mem4}> <@{mem5}> <@{mem6}> <@{mem7}> <@{mem8}> <@{mem9}>  {message}  {mess}"}
+                data = {"content": f"<@{mem1}> <@{mem2}> {message}  {mess}"}
             else:
                 data = {"content": f"{message}  {mess}"}
             r = requests.post(url, headers=header, data=data)
