@@ -121,7 +121,7 @@ def main():
     tprint("MiniTool","xlarge")
     print()
     print("""[1] Server Joiner             [2] Channel Spammer           [3] ID Scraper""")
-    print("""[4] Message Reactor             [2] Channel Spammer           [3] ID Scraper""")
+    print("""[4] Message Reactor           [5] Discord verify           [3] ID Scraper""")
     print()
     global mode
     mode = tinput('Mode')
@@ -373,7 +373,7 @@ if mode == '4':
         threading.Thread(target=main, args=(token.strip('\n'),)).start()
 
 if mode == '5':
-    serverid = tinput('server id:')
+    serverid = tinput('Server id:')
     def cookies():
                         c = requests.get("https://discord.com")
                         return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
