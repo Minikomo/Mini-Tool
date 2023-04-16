@@ -41,7 +41,7 @@ def main():
                                                                              """)
     newl()
     newl()
-    print("""[1]Server Joiner             [2]Chanel Spammer""")
+    print("""[1]Server Joiner             [2]Chanel Spammer           [3]ID Scraper""")
     newl()
     global mode
     mode = input('[?]Mode:')
