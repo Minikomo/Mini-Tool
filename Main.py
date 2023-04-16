@@ -373,7 +373,7 @@ if mode == '4':
         threading.Thread(target=main, args=(token.strip('\n'),)).start()
 
 if mode == '5':
-    serverid = input('server id:')
+    serverid = tinput('server id:')
     def cookies():
                         c = requests.get("https://discord.com")
                         return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
