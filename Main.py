@@ -132,7 +132,7 @@ def uwuspeak(text):
 
 
 def main():
-    tprint("MiniTool", "xlarge")
+    tprint('Mini-Tools','3-d')
     print()
     print("""[1] Server Joiner             [2] Channel Spammer           [3] ID Scraper""")
     print("""[4] Message Reactor           [5] Discord verify            [6] Channel Scraper""")
@@ -178,7 +178,7 @@ if mode == '1':
                 "sec-fetch-dest": "empty",
                 "sec-fetch-mode": "cors",
                 "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9012 Chrome/108.0.5359.215 Electron/22.3.2 Safari/537.36",
                 "x-context-properties": xconst.decode(),
                 "x-debug-options": "bugReporterEnabled",
                 "x-discord-locale": "en-US",
@@ -212,6 +212,7 @@ if mode == '2':
     messages = tinput('Messages (Seperated by commas)').split(',')
     massping = tinput('Mass Ping (y/n)')
     delay = tinput('Delay:')
+    
     if massping == 'y':
         pingcount = tinput("How many pings per message?")
     x = tinput("Should we modify the text? (y/n)")
@@ -239,7 +240,8 @@ if mode == '2':
             print(channel)
             # with open('big.txt','r')as f:
             #     lines = f.readlines()
-
+            with open('big.txt','r')as ff:
+                big = ff.readlines()
             
 
             time.sleep(0.5)
@@ -249,9 +251,9 @@ if mode == '2':
             if massping == 'y':
                 mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
                 mems = ' '.join(mem1)
-                data = {"content": f"{messagernd()} | {mems} {mess}"}
+                data = {"content": f"{random.choice(big)} | {mems} {mess}"}
             else:
-                data = {"content": f" {messagernd()}  {mess}"}
+                data = {"content": f" {random.choice(big)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
 
             if r.status_code == 200:
@@ -473,8 +475,8 @@ if mode == '6':
     token = tinput('Token:')
     server = tinput('Server ID:')
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless')
-    # options.add_argument('--disable-gpu')
+    options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     driver = webdriver.Chrome(options=options,service=ChromeService(ChromeDriverManager().install()))
     driver.get('https://discord.com/login')
@@ -502,7 +504,7 @@ if mode == '6':
     success('Logged into Discord')
     driver.get(f'https://discord.com/channels/{server}/')
     driver.execute_script("document.body.style.zoom = '4%';")
-    time.sleep(15)
+    time.sleep(8)
     
     with open('webpage.html', 'w', encoding='utf-8') as file:
         file.write(driver.page_source)
@@ -532,5 +534,6 @@ if mode == '6':
             warning(f'ID:{number} Missing Permissions')
         else:
             error(f'ID:{number} Does not exitst'  + check.text)
-    print(str(valid).strip("'"))
-            
+    valid_str = str(valid)
+    valid2 = valid_str.strip('[').strip(']').replace("'",'')
+    print(valid2)   
