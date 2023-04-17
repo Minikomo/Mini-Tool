@@ -371,9 +371,9 @@ if mode == '4':
             headers=headers,
         )
         if response.status_code == 204:
-            success(f'Token:{token[:10]}...   Reacted')
+            success(f'Token:{token[:10]}...     Reacted')
         else:
-            error(f'Token:{token[:10]}...   Could not React')
+            error(f'Token:{token[:10]}...     Could not React')
 
     for token in tokens:
         threading.Thread(target=main, args=(token.strip('\n'),)).start()
