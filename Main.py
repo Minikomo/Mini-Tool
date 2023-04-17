@@ -173,15 +173,15 @@ if mode == '1':
             }
             req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
             if req.status_code == 200:
-                info('Server Joind with:' + token[:20] + '*************')
+                info('Server joined! | Token: ' + token[:20] + '*************')
                 with open('joined.txt', 'a') as c:
                     c.write(token + '\n')
                     c.close
             else:
                 if 'captcha' in req.text:
-                    error('Faild to join with:' + token[:20] + '*************     Reason:Captcha')
+                    error('Failed to join server! | ' + token[:20] + f'************* {Fore.LIGHTBLACK_EX}(Captcha)')
                 else:
-                    error('Faild to join with:' + token[:20] + '*************     Reason:Unkown')
+                    error('Failed to join server! | ' + token[:20] + f'************* {Fore.LIGHTBLACK_EX}({req.json()})')
 
         def cookies(self, proxy):
             c = requests.get("https://discord.com")
