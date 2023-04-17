@@ -1,19 +1,12 @@
-import colorama
-import os
-import tls_client
-import os
-import base64
-import requests
-import threading
 import random
+import colorama
+import requests
+import tls_client
 from colorama import Fore, Style
 colorama.init()
-import datetime as dt
-import time
 import string
 import discum
 import threading
-import websocket
 import datetime
 from datetime import datetime
 import json
@@ -21,7 +14,6 @@ import time
 from websocket import WebSocket
 from concurrent.futures import ThreadPoolExecutor
 import easygui, os
-import art
 from art import tprint
 import re
 import base64
