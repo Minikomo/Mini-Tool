@@ -195,16 +195,22 @@ if mode == '1':
     Joiner()
 if mode == '2':
     ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
-    message = tinput('Message')
+    messages = tinput('Messages (Seperated by commas)').strip(' ').split(',')
     massping = tinput('Mass Ping (y/n)')
     if massping == 'y':
         pingcount = tinput("How many pings per message?")
     x = tinput("Should we modify the text? (y/n)")
     if x == 'y':
         e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
-        if e == '1': message = uwuspeak(message)
-        elif e == '2': message = hackerspeak(message)
-        else: warning("Invalid input! Not modifying message.")
+        message2 = []
+        if e == '1':
+            for message in messages:
+                message2.append(uwuspeak(message))
+        elif e == '2':
+            for message in messages:
+                message2.append(uwuspeak(message))
+        else: 
+            warning("Invalid input! Not modifying message.")
     
     def main(token):
 
@@ -220,9 +226,9 @@ if mode == '2':
             header = {"authorization": token}
             mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
-                data = {"content": f"{message} | {mems} {mess}"}
+                data = {"content": f"{random.choice(message2)} | {mems} {mess}"}
             else:
-                data = {"content": f"{message}  {mess}"}
+                data = {"content": f"{random.choice(message2)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
             print(r.text)
             if r.status_code == 200:
