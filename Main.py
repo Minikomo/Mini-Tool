@@ -251,9 +251,9 @@ if mode == '2':
             if massping == 'y':
                 mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
                 mems = ' '.join(mem1)
-                data = {"content": f"{random.choice(big)} | {mems} {mess}"}
+                data = {"content": f"{messagernd()} | {mems} {mess}"}
             else:
-                data = {"content": f" {random.choice(big)}  {mess}"}
+                data = {"content": f" {messagernd()} | {mess}"}
             r = requests.post(url, headers=header, data=data)
 
             if r.status_code == 200:
