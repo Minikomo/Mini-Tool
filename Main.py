@@ -203,14 +203,16 @@ if mode == '2':
     x = tinput("Should we modify the text? (y/n)")
     if x == 'y':
         e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
-        message2 = []
+        
         if e == '1':
-            for message in messages:
-                message2.append(uwuspeak(message))
+            def messagernd():
+                return uwuspeak(random.choice(messages))
         elif e == '2':
-            for message in messages:
-                message2.append(hackerspeak(message))
+            def messagernd():
+                return hackerspeak(random.choice(messages))
         else:
+            def messagernd():
+                return random.choice(messages)
             warning("Invalid input! Not modifying message.")
 
 
@@ -228,9 +230,9 @@ if mode == '2':
             header = {"authorization": token}
             mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
-                data = {"content": f"{random.choice(message2)} | {mems} {mess}"}
+                data = {"content": f"{messagernd()} | {mems} {mess}"}
             else:
-                data = {"content": f"{random.choice(message2)}  {mess}"}
+                data = {"content": f"{messagernd()}  {mess}"}
             r = requests.post(url, headers=header, data=data)
 
             if r.status_code == 200:
