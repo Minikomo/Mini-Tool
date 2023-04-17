@@ -232,22 +232,15 @@ if mode == '2':
             else:
                 data = {"content": f"{random.choice(message2)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
-<<<<<<< HEAD
-            if 'rate' in r.text.lower():
-                warning(token[:20] + '... Rate limited')
-            if r.status_code == 200:
-                success(token[:20] + '.....   send message')
-            elif r.status_code == 403:
-                error(token[:20] + '.....  token banned')
-=======
+
             if r.status_code == 200:
                 success(f'Sent message! | {token[:20]}***************')
             elif r.status_code == 403:
                 error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
+            elif 'rate' in r.text.lower():
+                warning(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Ratelimited)')
             else:
                 error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
-
->>>>>>> 984e4367129b2517939c29067850d9af418506fd
 
 
     tokens = open('tokens.txt', 'r').read().splitlines()
@@ -292,30 +285,30 @@ if mode == '3':
 
 if mode == '16':
     tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
-    channel = int(input("Channel ID: "))
-    server = int(input("Server ID: "))
-    deaf = input("Defean: (y/n) ")
+    channel = int(tinput("Channel ID"))
+    server = int(tinput("Server ID"))
+    deaf = tinput("Deafen: (y/n)")
     if deaf == "y":
         deaf = True
     if deaf == "n":
         deaf = False
-    mute = input("Mute: (y/n) ")
+    mute = input("Mute: (y/n)")
     if mute == "y":
         mute = True
     if mute == "n":
         mute = False
-    stream = input("Stream: (y/n) ")
+    stream = input("Stream: (y/n)")
     if stream == "y":
         stream = True
     if stream == "n":
         stream = False
-    video = input("Video: (y/n) ")
+    video = input("Video: (y/n)")
     if video == "y":
         video = True
     if video == "n":
         video = False
-
-    executor = ThreadPoolExecutor(max_workers=int(1000))
+    threads = int(tinput("Threads"))
+    executor = ThreadPoolExecutor(max_workers=int(threads))
 
     def run(token):
         while True:
