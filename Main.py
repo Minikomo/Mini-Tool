@@ -205,11 +205,9 @@ if mode == '2':
         e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
         message2 = []
         if e == '1':
-            for message in messages:
-                message2.append(uwuspeak(message))
+            uwu = True
         elif e == '2':
-            for message in messages:
-                message2.append(hackerspeak(message))
+            uwu = False
         else:
             warning("Invalid input! Not modifying message.")
 
@@ -227,8 +225,13 @@ if mode == '2':
             url = f'https://discord.com/api/v9/channels/{channell}/messages'
             header = {"authorization": token}
             mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
+            message = random.choice(messages)
+            if uwu:
+                message.append(uwuspeak(message))
+            else:
+                message.append(hackerspeak(message))
             if massping == 'y':
-                data = {"content": f"{random.choice(message2)} | {mems} {mess}"}
+                data = {"content": f"{random.choice(message2)} | {mems} | {mess}"}
             else:
                 data = {"content": f"{random.choice(message2)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
