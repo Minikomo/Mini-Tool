@@ -195,7 +195,7 @@ if mode == '1':
     Joiner()
 if mode == '2':
     ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
-    messages = tinput('Messages (Seperated by commas)').strip(' ').split(',')
+    messages = tinput('Messages (Seperated by commas)').split(',')
     massping = tinput('Mass Ping (y/n)')
     if massping == 'y':
         pingcount = tinput("How many pings per message?")
