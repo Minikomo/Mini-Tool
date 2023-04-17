@@ -266,7 +266,7 @@ if mode == '2':
                 error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
             time.sleep(int(delay))
 
-    tokens = open('tokens.txt', 'r').read().splitlines()
+    tokens = open('joined.txt', 'r').read().splitlines()
     for token in tokens:
         t = threading.Thread(target=main, args=(token,))
         t.start()
@@ -512,7 +512,7 @@ if mode == '6':
         html_content = file.read()
         links = re.findall(r'channels___\d{18,21}', html_content)
     info('Saved html')
-    
+    driver.quit()
     ids = []
     for link in links:
         
