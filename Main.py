@@ -501,7 +501,8 @@ if mode == '6':
     time.sleep(7)
     success('Logged into Discord')
     driver.get(f'https://discord.com/channels/{server}/')
-    time.sleep(7)
+    driver.execute_script("document.body.style.zoom = '4%';")
+    time.sleep(15)
     
     with open('webpage.html', 'w', encoding='utf-8') as file:
         file.write(driver.page_source)
@@ -516,12 +517,13 @@ if mode == '6':
         id = re.search(r'\d{18,21}', link).group()
         success(f'Found ID:{id}')
         ids.append(id)
-
+    valid = []
     print('Checking IDs if Valid')
     for number in ids:
         check = requests.post(f'https://discord.com/api/v9/channels/{number}/messages',data={'content': ' '},headers={"authorization": token})
         if '50006' in check.text:
             success(f'ID:{number} Is a Text Channel')
+            valid.append(number)
             with open('Channels.txt','a')as g:
                 g.write(number + '\n')
         elif '50008' in check.text:
@@ -530,4 +532,5 @@ if mode == '6':
             warning(f'ID:{number} Missing Permissions')
         else:
             error(f'ID:{number} Does not exitst'  + check.text)
+    print(str(valid).strip("'"))
             
