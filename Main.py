@@ -20,7 +20,7 @@ import json
 import time
 from websocket import WebSocket
 from concurrent.futures import ThreadPoolExecutor
-import easygui, os
+
 import art
 from art import tprint
 import re
@@ -269,7 +269,7 @@ if mode == '3':
 
 
 if mode == '16':
-    tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
+    tokenlist = open('tokens.txt', 'r').read().splitlines()
     channel = int(input("Channel ID: "))
     server = int(input("Server ID: "))
     deaf = input("Defean: (y/n) ")
