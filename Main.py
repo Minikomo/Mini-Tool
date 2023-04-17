@@ -17,6 +17,13 @@ from art import tprint
 import re
 import base64
 import urllib.parse
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import re
 
 colorama.init()
 debugmode = False
@@ -122,7 +129,7 @@ def main():
     tprint("MiniTool", "xlarge")
     print()
     print("""[1] Server Joiner             [2] Channel Spammer           [3] ID Scraper""")
-    print("""[4] Message Reactor           [5] Discord verify           [3] ID Scraper""")
+    print("""[4] Message Reactor           [5] Discord verify            [6] Channel Scraper""")
     print()
     global mode
     mode = tinput('Mode')
@@ -198,6 +205,7 @@ if mode == '2':
     ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
     messages = tinput('Messages (Seperated by commas)').split(',')
     massping = tinput('Mass Ping (y/n)')
+    delay = tinput('Delay:')
     if massping == 'y':
         pingcount = tinput("How many pings per message?")
     x = tinput("Should we modify the text? (y/n)")
@@ -211,28 +219,33 @@ if mode == '2':
             def messagernd():
                 return hackerspeak(random.choice(messages))
         else:
-            def messagernd():
-                return random.choice(messages)
+            
             warning("Invalid input! Not modifying message.")
-
+    else:
+        def messagernd():
+            return random.choice(messages)
 
     def main(token):
 
         mem = open('members.txt', 'r').read().splitlines()
         while True:
-            channell = random.choice(ID)
-            print(channell)
-            mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
-            mems = ' '.join(mem1)
+            channel = random.choice(ID)
+            print(channel)
+            # with open('big.txt','r')as f:
+            #     lines = f.readlines()
+
+            
 
             time.sleep(0.5)
-            url = f'https://discord.com/api/v9/channels/{channell}/messages'
+            url = f'https://discord.com/api/v9/channels/{channel}/messages'
             header = {"authorization": token}
             mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
             if massping == 'y':
+                mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
+                mems = ' '.join(mem1)
                 data = {"content": f"{messagernd()} | {mems} {mess}"}
             else:
-                data = {"content": f"{messagernd()}  {mess}"}
+                data = {"content": f" {messagernd()}  {mess}"}
             r = requests.post(url, headers=header, data=data)
 
             if r.status_code == 200:
@@ -243,11 +256,10 @@ if mode == '2':
                 warning(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Ratelimited)')
             else:
                 error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
-
+            time.sleep(int(delay))
 
     tokens = open('tokens.txt', 'r').read().splitlines()
     for token in tokens:
-        print(token)
         t = threading.Thread(target=main, args=(token,))
         t.start()
 if mode == '3':
@@ -284,6 +296,7 @@ if mode == '3':
     with open('members.txt', 'w') as ids:
         for element in memberids:
             ids.write(element + '\n')
+
 
 if mode == '16':
     tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
@@ -344,7 +357,7 @@ if mode == '4':
     Message = tinput('Message ID:')
     emo = tinput('Emoji:')
     emoji = urllib.parse.quote(emo)
-    with open("tokens.txt") as f:
+    with open("joined.txt") as f:
         tokens = f.readlines()
 
 
@@ -399,7 +412,8 @@ if mode == '4':
 
 if mode == '5':
     serverid = tinput('Server id:')
-
+    with open("joined.txt") as f:
+        tokens = f.readlines()
 
     def cookies():
         c = requests.get("https://discord.com")
@@ -441,8 +455,71 @@ if mode == '5':
         if verify.status_code == 201:
             success(f'Token:{token}... Successfully verifyed')
         else:
-            error('Token:{token}...   Could not verify')
+            error(f'Token:{token}...   Could not verify')
 
 
     for token in tokens:
         threading.Thread(target=verify, args=(token.strip('\n'),)).start()
+
+if mode == '6':
+    token = tinput('Token:')
+    server = tinput('Server ID:')
+    options = webdriver.ChromeOptions()
+    # options.add_argument('--headless')
+    # options.add_argument('--disable-gpu')
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    driver = webdriver.Chrome(options=options,service=ChromeService(ChromeDriverManager().install()))
+    driver.get('https://discord.com/login')
+
+
+
+    info('Logging into discord')
+    wait = WebDriverWait(driver, 10) 
+    element = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div[1]/div[1]/div/div/div/div/form/div[2]/div/div[1]')))
+
+    driver.execute_script(f"""
+    function login(token) {{
+        setInterval(() => {{
+        document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"{token}"`
+        }}, 50);
+        setTimeout(() => {{
+        location.reload();
+        }}, 2500);
+    }}
+    login("{token}");
+    """)
+
+
+    time.sleep(7)
+    success('Logged into Discord')
+    driver.get(f'https://discord.com/channels/{server}/')
+    time.sleep(7)
+    
+    with open('webpage.html', 'w', encoding='utf-8') as file:
+        file.write(driver.page_source)
+    with open('webpage.html', 'r', encoding='utf-8') as file:
+        html_content = file.read()
+        links = re.findall(r'channels___\d{18,21}', html_content)
+    info('Saved html')
+    
+    ids = []
+    for link in links:
+        
+        id = re.search(r'\d{18,21}', link).group()
+        success(f'Found ID:{id}')
+        ids.append(id)
+
+    print('Checking IDs if Valid')
+    for number in ids:
+        check = requests.post(f'https://discord.com/api/v9/channels/{number}/messages',data={'content': ' '},headers={"authorization": token})
+        if '50006' in check.text:
+            success(f'ID:{number} Is a Text Channel')
+            with open('Channels.txt','a')as g:
+                g.write(number + '\n')
+        elif '50008' in check.text:
+            warning(f'ID:{number} Is not a Text Channel')
+        elif '50013'in check.text:
+            warning(f'ID:{number} Missing Permissions')
+        else:
+            error(f'ID:{number} Does not exitst'  + check.text)
+            
