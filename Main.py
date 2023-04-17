@@ -208,7 +208,7 @@ if mode == '2':
                 message2.append(uwuspeak(message))
         elif e == '2':
             for message in messages:
-                message2.append(uwuspeak(message))
+                message2.append(hackerspeak(message))
         else: 
             warning("Invalid input! Not modifying message.")
     
