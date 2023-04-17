@@ -173,15 +173,15 @@ if mode == '1':
             }
             req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
             if req.status_code == 200:
-                info('Server joined! | Token: ' + token[:20] + '*************')
+                info('Server Joind with:' + token[:20] + '*************')
                 with open('joined.txt', 'a') as c:
                     c.write(token + '\n')
                     c.close
             else:
                 if 'captcha' in req.text:
-                    error('Failed to join server! | ' + token[:20] + f'************* {Fore.LIGHTBLACK_EX}(Captcha)')
+                    error('Faild to join with:' + token[:20] + '*************     Reason:Captcha')
                 else:
-                    error('Failed to join server! | ' + token[:20] + f'************* {Fore.LIGHTBLACK_EX}({req.json()})')
+                    error('Faild to join with:' + token[:20] + '*************     Reason:Unkown')
 
         def cookies(self, proxy):
             c = requests.get("https://discord.com")
@@ -205,9 +205,11 @@ if mode == '2':
         e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
         message2 = []
         if e == '1':
-            uwu = True
+            for message in messages:
+                message2.append(uwuspeak(message))
         elif e == '2':
-            uwu = False
+            for message in messages:
+                message2.append(hackerspeak(message))
         else:
             warning("Invalid input! Not modifying message.")
 
@@ -225,21 +227,17 @@ if mode == '2':
             url = f'https://discord.com/api/v9/channels/{channell}/messages'
             header = {"authorization": token}
             mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
-            message = random.choice(messages)
-            if uwu:
-                message.append(uwuspeak(message))
-            else:
-                message.append(hackerspeak(message))
             if massping == 'y':
-                data = {"content": f"{random.choice(message2)} | {mems} | {mess}"}
+                data = {"content": f"{random.choice(message2)} | {mems} {mess}"}
             else:
                 data = {"content": f"{random.choice(message2)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
-            print(r.text)
+            if 'rate' in r.text.lower():
+                warning(token[:20] + '... Rate limited')
             if r.status_code == 200:
-                print(token[:20] + '.....   send message')
+                success(token[:20] + '.....   send message')
             elif r.status_code == 403:
-                print(token[:20] + '.....  token banned')
+                error(token[:20] + '.....  token banned')
 
 
     tokens = open('tokens.txt', 'r').read().splitlines()
