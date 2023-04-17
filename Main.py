@@ -234,7 +234,7 @@ if mode == '2':
             r = requests.post(url, headers=header, data=data)
             print(r.text)
             if r.status_code == 200:
-                print(token[:20] + '.....   typed message')
+                print(token[:20] + '.....   send message')
             elif r.status_code == 403:
                 print(token[:20] + '.....  token banned')
 
