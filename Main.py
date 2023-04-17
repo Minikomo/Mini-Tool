@@ -3,7 +3,6 @@ import colorama
 import requests
 import tls_client
 from colorama import Fore, Style
-colorama.init()
 import string
 import discum
 import threading
@@ -18,7 +17,10 @@ from art import tprint
 import re
 import base64
 import urllib.parse
+
+colorama.init()
 debugmode = False
+
 def error(message):
     print(
         f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.RED}[ERROR]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
