@@ -17,6 +17,7 @@ from art import tprint
 import re
 import base64
 import urllib.parse
+
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -25,9 +26,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import re
 
+import ctypes
+
+
 colorama.init()
 debugmode = False
 
+def title(title):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 def error(message):
     print(
@@ -180,15 +186,15 @@ if mode == '1':
             }
             req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
             if req.status_code == 200:
-                info('Server Joind with:' + token[:20] + '*************')
+                success(f'Joined! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
                 with open('joined.txt', 'a') as c:
                     c.write(token + '\n')
                     c.close
             else:
                 if 'captcha' in req.text:
-                    error('Faild to join with:' + token[:20] + '*************     Reason:Captcha')
+                    error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Captcha)')
                 else:
-                    error('Faild to join with:' + token[:20] + '*************     Reason:Unkown')
+                    error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({req.json()})')
 
         def cookies(self, proxy):
             c = requests.get("https://discord.com")
@@ -262,6 +268,7 @@ if mode == '2':
     for token in tokens:
         t = threading.Thread(target=main, args=(token,))
         t.start()
+
 if mode == '3':
     tukan = input('\n[\x1b[95m>\x1b[95m\x1B[37m] Account Token: ')
     guildd = input('[\x1b[95m>\x1b[95m\x1B[37m] Server ID: ')
@@ -343,19 +350,18 @@ if mode == '16':
             time.sleep(0.1)
 
 
-    os.system(f"title Total Tokens: {len(tokenlist)}")
+    title(f"Mini-Tool | Total Tokens: {len(tokenlist)}")
     i = 0
     for token in tokenlist:
         executor.submit(run, token)
     i += 1
-    print("[+] Joined voice channel")
+    success("Joined voice channel!")
     time.sleep(0.01)
-    yay = input("Enter to exit.")
 
 if mode == '4':
-    Channel = tinput('Channel ID:')
-    Message = tinput('Message ID:')
-    emo = tinput('Emoji:')
+    Channel = tinput('Channel ID')
+    Message = tinput('Message ID')
+    emo = tinput('Emoji')
     emoji = urllib.parse.quote(emo)
     with open("joined.txt") as f:
         tokens = f.readlines()
@@ -453,7 +459,9 @@ if mode == '5':
         verify = requests.put(f'https://discord.com/api/v9/guilds/{serverid}/requests/@me', headers=headers,
                               json=json_data, )
         if verify.status_code == 201:
-            success(f'Token:{token}... Successfully verifyed')
+            success(f'Verified! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
+        elif verify.status_code == 403:
+            error(f'Failed to verify! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
         else:
             error(f'Token:{token}...   Could not verify')
 
