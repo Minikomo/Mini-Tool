@@ -235,11 +235,13 @@ if mode == '2':
             else:
                 data = {"content": f"{random.choice(message2)}  {mess}"}
             r = requests.post(url, headers=header, data=data)
-            print(r.text)
             if r.status_code == 200:
-                print(token[:20] + '.....   send message')
+                success(f'Sent message! | {token[:20]}***************')
             elif r.status_code == 403:
-                print(token[:20] + '.....  token banned')
+                error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
+            else:
+                error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
+
 
 
     tokens = open('tokens.txt', 'r').read().splitlines()
