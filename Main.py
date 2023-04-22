@@ -452,7 +452,7 @@ if mode == '5':
             "x-context-properties": xconst.decode(),
             "x-debug-options": "bugReporterEnabled",
             "x-discord-locale": "en-US",
-            "x-super-properties": xprops.decode(),
+            "x-super-properties": 'eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMTkwNDUiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImRlIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTkxNzQzLCJuYXRpdmVfYnVpbGRfbnVtYmVyIjozMTc2MCwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbCwiZGVzaWduX2lkIjowfQ==',
         }
         jasuoon = requests.get(f'https://discord.com/api/v9/guilds/{serverid}/member-verification', headers=headers, )
         json_data = jasuoon.json()
