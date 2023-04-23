@@ -237,7 +237,7 @@ if mode == '2':
         mem = open('members.txt', 'r').read().splitlines()
         while True:
             channel = random.choice(ID)
-            print(channel)
+            
             # with open('big.txt','r')as f:
             #     lines = f.readlines()
             with open('big.txt','r')as ff:
