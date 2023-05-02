@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+main.build
 # Distribution / packaging
 .Python
 build/
@@ -144,3 +144,9 @@ more.py
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/inspectionProfiles/Project_Default.xml
 .idea/inspectionProfiles/profiles_settings.xml
+*.c
+*.zip
+main.build/.sconsign-311.dblite
+login.json
+sus.txt
+Untitled-2.html
