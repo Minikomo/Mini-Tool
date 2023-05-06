@@ -28,6 +28,7 @@ import re
 import hashlib
 import sys
 import ctypes
+import tls_client
 from discord_webhook import DiscordWebhook 
 LINES_PER_MESSAGE = 5
 import logging
@@ -262,65 +263,63 @@ def main():
         class Joiner:
             def __init__(self):
                 os.system("cls")
-                self.session = requests.session()
-                invite_code = tinput("Invite code").replace("https://discord.gg/", '')
-                delay = tinput("Delay")
-                with open("tokens.txt") as f:
+                self.session = tls_client.Session(client_identifier="chrome_108")
+                invite_code = input("discord.gg/")
+                with open("./tokens.txt") as f:
                     tokens = f.read().split('\n')
-                ts = [threading.Thread(target=self.join, args=[token, invite_code, self.proxy()]) for token in tokens]
+                ts = [threading.Thread(target=self.join,args=[token,invite_code,self.proxy()]) for token in tokens]
                 for t in ts:
-                    time.sleep(int(delay))
+                    
                     t.start()
                 for t in ts:
-                    time.sleep(int(delay))
+                    
                     t.join()
-
+            
             def proxy(self):
                 return None
-
-            def join(self, token, invite, proxy):
+            
+            def join(self,token,invite,proxy):
                 xconst, xprops = self.xheaders()
                 headers = {
-                    "accept": "*/*",
-                    "accept-encoding": "gzip, deflate, br",
-                    "accept-language": "en-US,en-NL;q=0.9,en-GB;q=0.8",
-                    "authorization": token,
-                    "content-type": "application/json",
-                    "cookie": self.cookies(proxy),
-                    "origin": "https://discord.com",
-                    "referer": "https://discord.com/channels/@me/",
-                    "sec-fetch-dest": "empty",
-                    "sec-fetch-mode": "cors",
-                    "sec-fetch-site": "same-origin",
-                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9012 Chrome/108.0.5359.215 Electron/22.3.2 Safari/537.36",
-                    "x-context-properties": xconst.decode(),
-                    "x-debug-options": "bugReporterEnabled",
-                    "x-discord-locale": "en-US",
-                    "x-super-properties": xprops.decode(),
-                }
-                req = self.session.post(f"https://discord.com/api/v9/invites/{invite}", json={}, headers=headers)
-                if req.status_code == 200:
+                "accept":               "*/*",
+                "accept-encoding":      "gzip, deflate, br",
+                "accept-language":      "en-US,en-NL;q=0.9,en-GB;q=0.8",
+                "authorization":        token,
+                "content-type":         "application/json",
+                "cookie":               self.cookies(proxy),
+                "origin":               "https://discord.com",
+                "referer":              "https://discord.com/channels/@me/",
+                "sec-fetch-dest":       "empty",
+                "sec-fetch-mode":       "cors",
+                "sec-fetch-site":       "same-origin",
+                "user-agent":           "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9006 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36",
+                "x-context-properties": xconst.decode(),
+                "x-debug-options":      "bugReporterEnabled",
+                "x-discord-locale":     "en-US",
+                "x-super-properties":   xprops.decode(),
+            }
+                req = self.session.post(f"https://discord.com/api/v9/invites/{invite}",json={},headers=headers)
+                time.sleep(0.5)
+                if verify.status_code == 201:
                     success(f'Joined! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
-                    with open('joined.txt', 'a') as c:
-                        c.write(token + '\n')
-                        c.close
+                elif verify.status_code == 403:
+                    error(f'Failed Join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
                 else:
-                    if 'captcha' in req.text:
-                        error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Captcha)')
-                    else:
-                        error(f'Failed to join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}({req.json()})')
-
-            def cookies(self, proxy):
+                    error(f'Token:{token}...   Could not verify')
+            
+            def cookies(self,proxy):
                 c = requests.get("https://discord.com")
                 return f"__dcfduid={c.cookies['__dcfduid']}; __sdcfduid={c.cookies['__sdcfduid']}; "
-
+            
             def xheaders(self):
                 xconst = '{"location":"Invite Button Embed","location_guild_id":null,"location_channel_id":"","location_channel_type":3,"location_message_id":""}'
                 xprops = '{"os":"Windows","browser":"Discord Client","release_channel":"stable","client_version":"1.0.9006","os_version":"10.0.22000","os_arch":"x64","system_locale":"en-US","client_build_number":151638,"client_event_source":null}'
                 return base64.b64encode(xconst.encode("utf-8")), base64.b64encode(xprops.encode("utf-8"))
-
-
+        time.sleep(0.5)
         Joiner()
+
+        
+
     if mode == '2':
         ID = tinput('Channel IDs (Seperated by commas)').strip(' ').split(',')
         messages = tinput('Messages (Seperated by commas)').split(',')
@@ -377,16 +376,17 @@ def main():
         tokens = open('joined.txt', 'r').read().splitlines()
         Threads = []
         
-        tinput('Press enter to stop')
-        time.sleep(1)
+        
+        
         for token in tokens:
             t = threading.Thread(target=main, args=(token,))
             t.start()
             Threads.append(t)
-
-        
-        for thread in threads:
+        tinput('Press enter to stop')
+        for thread in Threads:
             thread.join()
+        print('Done!')
+        
 
 
     if mode == '3':
@@ -523,7 +523,7 @@ def main():
             }
 
             response = requests.put(
-                f'https://discord.com/api/v9/channels/{Channel}/messages/{Message}/reactions/{emoji}/%40me',
+                f'https://discord.com/api/v9/channels/1090317895013240923/messages/1090362911161057521/reactions/1441thumbsup%3A1086287733275762728/%40me',
                 params=params,
                 headers=headers,
             )
@@ -533,15 +533,16 @@ def main():
                 error(f'Token:{token[:10]}...     Could not React')
 
         threads = []
-        tinput('Press enter to stop')
-        time.sleep(1)
+        
         for token in tokens:
             t = threading.Thread(target=main, args=(token.strip('\n'),))
             t.start()
             threads.append(t)
         
-        for thread in threads:
+        tinput('Press enter to stop')
+        for thread in Threads:
             thread.join()
+        print('Done!')
 
     if mode == '5':
         serverid = tinput('Server id:')
@@ -593,16 +594,17 @@ def main():
                 error(f'Token:{token}...   Could not verify')
 
         threads=[]
-        tinput('Press enter to stop')
-        time.sleep(1)
+        
         for token in tokens:
             t = threading.Thread(target=verify, args=(token.strip('\n'),))
             t.start()
             threads.append(t)
         #make all threads stop
         
-        for thread in threads:
+        tinput('Press enter to stop')
+        for thread in Threads:
             thread.join()
+        print('Done!')
 
 
         
