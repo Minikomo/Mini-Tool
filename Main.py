@@ -300,12 +300,12 @@ def main():
             }
                 req = self.session.post(f"https://discord.com/api/v9/invites/{invite}",json={},headers=headers)
                 time.sleep(0.5)
-                if verify.status_code == 201:
+                if req.status_code == 200:
                     success(f'Joined! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}')
-                elif verify.status_code == 403:
+                elif req.status_code == 403:
                     error(f'Failed Join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Locked Token)')
-                else:
-                    error(f'Token:{token}...   Could not verify')
+                elif 'captcha' in req.text:
+                    error (f'Failed Join! | {token[:20]}*************** {Fore.LIGHTBLACK_EX}(Captcha)')
             
             def cookies(self,proxy):
                 c = requests.get("https://discord.com")
@@ -523,14 +523,14 @@ def main():
             }
 
             response = requests.put(
-                f'https://discord.com/api/v9/channels/1090317895013240923/messages/1090362911161057521/reactions/1441thumbsup%3A1086287733275762728/%40me',
+                f'https://discord.com/api/v9/channels/{Channel}/messages/{Message}/reactions/{emoji}/%40me',
                 params=params,
                 headers=headers,
             )
             if response.status_code == 204:
                 success(f'Token:{token[:10]}...     Reacted')
             else:
-                error(f'Token:{token[:10]}...     Could not React')
+                error(f'Token:{token[:10]}...     Could not React'+ print(response.text))
 
         threads = []
         
